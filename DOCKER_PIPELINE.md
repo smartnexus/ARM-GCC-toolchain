@@ -23,7 +23,8 @@ Images are pushed to: `ghcr.io/smartnexus/arm-gcc-toolchain`
 The workflow automatically generates tags based on the trigger:
 - `latest` - for pushes to the default branch
 - `v1.2.3`, `v1.2`, `v1` - for version tags
-- `main-<sha>` - for specific commits
+- `sha-<sha>` - for specific commits
+- `main`, `master` - for branch names
 - `pr-<number>` - for pull requests (not pushed)
 
 ### Prerequisites
