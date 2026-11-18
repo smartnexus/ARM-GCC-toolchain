@@ -19,7 +19,17 @@ env:
 
 jobs:
   build-and-push:
+    name: Build ${{ matrix.gcc_version }}
     runs-on: ubuntu-latest
+    # One image per toolchain version (GCC_VERSION build-arg in the Dockerfile)
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - gcc_version: 12.2.rel1   # STM32 projects; also published as "latest"
+            latest: true
+          - gcc_version: 9-2020-q2   # Dragino LA66
+            latest: false
     permissions:
       contents: read
       packages: write
@@ -44,21 +54,30 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # Both jobs push to the same package, so every tag carries the toolchain
+          # version; "latest" is set explicitly (only for 12.2.rel1) to avoid a race.
+          flavor: |
+            latest=false
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ matrix.gcc_version }},enable={{is_default_branch}}
+            type=raw,value=latest,enable=${{ matrix.latest && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+            type=ref,event=pr,prefix=${{ matrix.gcc_version }}-pr-
+            type=semver,pattern={{version}},prefix=${{ matrix.gcc_version }}-
+            type=semver,pattern={{major}}.{{minor}},prefix=${{ matrix.gcc_version }}-
+            type=semver,pattern={{major}},prefix=${{ matrix.gcc_version }}-
+            type=sha,prefix=${{ matrix.gcc_version }}-sha-
+          labels: |
+            org.opencontainers.image.version=${{ matrix.gcc_version }}
+            org.opencontainers.image.description=arm-none-eabi GCC ${{ matrix.gcc_version }} build environment
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
+          build-args: |
+            GCC_VERSION=${{ matrix.gcc_version }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.gcc_version }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.gcc_version }}
