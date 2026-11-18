@@ -11,7 +11,7 @@ One image is published per toolchain version (`GCC_VERSION` build-arg in the `Do
 | `12.2.rel1`, `latest` | Arm GNU Toolchain 12.2.Rel1 (GCC 12.2.1) | STM32 projects |
 | `9-2020-q2` | GNU Arm Embedded Toolchain 9-2020-q2-update (GCC 9.3.1) | Dragino LA66 / ASR6601 |
 
-Every build is also tagged `<version>-sha-<commit>` (e.g. `12.2.rel1-sha-48d91a7`), and release tags `vX.Y.Z` publish `<version>-X.Y.Z`.
+`<version>` and `latest` move with every push to `main`. Every published build is also tagged `<version>-sha-<commit>` (e.g. `12.2.rel1-sha-48d91a7`), and git tags `vX.Y.Z` publish `<version>-X.Y.Z`, `<version>-X.Y` and `<version>-X`.
 
 ## Pull image
 ```bash
